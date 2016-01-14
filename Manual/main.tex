@@ -1,0 +1,618 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{fancyhdr}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[top=3cm, left=3cm, bottom=3cm, right=3cm]{geometry}
+\usepackage[citestyle=apa, style=numeric, sorting=none, backend=biber]{biblatex}
+
+\addbibresource{bibliografia.bib}
+\DeclareLanguageMapping{spanish}{spanish-apa}
+
+\title{Controlando Versiones con Git}
+\author{Daniel Gacitúa Vásquez}
+\date{Diciembre 2015}
+
+\begin{document}
+
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\noindent
+\includegraphics[height=3.2cm]{logos/logousach.png}
+\hfill
+\includegraphics[height=2.7cm]{logos/logocgl.png}
+
+\center
+
+\textsc{\LARGE Universidad de Santiago de Chile}\\[0.5cm]
+\textsc{\Large Comunidad GNU/Linux USACH}\\[1.5cm]
+
+\HRule \\[0.4cm]
+{ \huge \bfseries Controlando Versiones con Git\\[0.4cm]
+\LARGE Manual del Programador}\\[0.4cm]
+
+\HRule \\[1.5cm]\Large \emph{Autor:}\\
+Daniel Gacitúa Vásquez\\
+daniel.gacitua@usach.cl\\[2cm]
+
+\includegraphics[width=8cm]{logos/logogit.png}\\[1cm]
+
+{\large \today\\
+v1.0}\\[2cm]
+
+\vfill
+
+\end{titlepage}
+
+\tableofcontents
+\pagebreak
+
+\setlength{\parindent}{4em}
+\setlength{\parskip}{1em}
+
+\newcommand{\imagen}[2]{
+    \begin{center}
+    \noindent \includegraphics[#1]{#2}
+    \end{center}
+}
+
+\section{Introducción}
+
+El objetivo de este documento es capacitar a su lector en el uso del sistema de control de versiones Git, tanto en ambientes de desarrollo GNU/Linux como Microsoft Windows. Este manual se distribuye bajo la licencia \textbf{Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)}.
+
+\imagen{width=3cm}{logos/CC-BY-SA.png}
+
+Recuerda compartir este manual con todos tus colegas programadores. Un código versionado siempre es un código de mayor calidad, además de facilitar la edición por parte de múltiples usuarios y permitir la programación colaborativa.
+
+Este documento es y será siempre un \textit{work in progress}, con el fin de enseñar de la manera más simple y práctica posible los elementos propios de Git (que no son sencillos de aprender y asimilar). Cualquier sugerencia o mejora es bienvenida.
+
+\subsection{Cómo usar este Manual}
+
+Para asegurar la mejor experiencia de aprendizaje con este Manual, luego de terminar con la sección \textsc{Introducción}, continúa con \textsc{Uso básico de Git} (página \pageref{basic}), leéla bien hasta entenderla completamente. Luego procede a la sección \textsc{Instalando Git} (página \pageref{install}) para instalar Git según tu sistema operativo y practicar los conceptos ya vistos. Si necesitas hostear en la nube tu proyecto, la sección \textsc{Interacción con Servidores Públicos de Git} (página \pageref{host}) te proveerá de servidores públicos para dicha tarea. Finalmente, una vez que hayas entendido y sepas aplicar todo lo anterior, puedes ir a la sección \textsc{Uso avanzado de Git} (página \pageref{adv}) para conocer algunas técnicas que pueden ser útiles en proyectos con muchos programadores o muchas líneas de código. Por último, no olvides visitar la sección \textsc{Miscelánea} (página \pageref{misc}) para saber un poco más del Manual y su Autor.
+
+\subsection{¿Qué es Git?}
+
+Git es un software de control de versiones diseñado por Linus Torvalds, pensando en la eficiencia y la confiabilidad del mantenimiento de versiones de aplicaciones cuando éstas tienen un gran número de archivos de código fuente. Hay algunos proyectos de mucha relevancia que ya usan Git, en particular, el grupo de programación del núcleo Linux\cite{wikigit}.
+
+\subsection{Requisitos para usar Git}
+
+\begin{itemize}
+\item Conocer los fundamentos básicos de algún lenguaje de programación (puede ser C, Java, Python o cualquier otro).
+\item Tener un ambiente de programación establecido en alguna distribución GNU/Linux o Microsoft Windows (esto quiere decir, contar con un IDE o Editor de Texto Plano para editar código).
+\item Contar con algún proyecto de código que pueda ser versionado con git (cualquier proyecto hecho en texto plano sirve).
+\end{itemize}
+
+\subsection{¿Cómo funciona Git?}
+
+Git se basa en el Modelo Cliente-Servidor para alojar
+repositorios de código (un repositorio viene a equivaler a un proyecto de código). El usuario (cliente git) tiene un repositorio local el cual aloja (dentro de su PC) diferentes snapshots (versiones) de su código. El usuario intercambia con un repositorio remoto (servidor git) sus snapshots para ser distribuidas a otros
+usuarios.
+
+Ejemplos de servidores públicos de git son \textit{BitBucket} y \textit{GitHub}. Ejemplos de servidores implementables en un ambiente privado son \textit{gitolite} y \textit{gitosis}.
+
+Los snapshots son conocidos en git como \textit{commits}.
+
+\pagebreak
+
+\section{Uso básico de Git}\label{basic}
+
+\subsection{Elementos básicos}
+
+Los elementos básicos a considerar en cualquier proyecto versionado por Git son:
+
+\begin{itemize}
+\item El \textbf{commit}, es la unidad de trabajo básica de Git. Un commit es un snapshot o copia del estado actual de todo el código del proyecto.
+\item Las \textbf{zonas de trabajo}, son las encargadas de almacenar los diferentes commits realizados en el código, pueden ser zonas locales o remotas.
+\item Los \textbf{comandos de Git}, son acciones que nos permiten crear, modificar y mover de una zona a otra los commits generados por el usuario.
+\end{itemize}
+
+Respecto a los commits, estos se encadenan entre si como una lista enlazada a través del tiempo\cite{hades}:
+\imagen{width=7cm}{imagenes/svn-history.png}
+
+En la imagen anterior, cada círculo representa un commit. Cabe destacar que en el progreso de los proyectos Git se pueden dar momentos en que la lista no es estrictamente lineal o tiene desvíos, como los siguientes:
+\imagen{width=7cm}{imagenes/git-norefs.png}
+
+Además cada commit tiene un autor (usuario) y un timestamp (marca de tiempo) y un mensaje descriptivo. En base a éstos parámetros, se genera el \textit{hash del commit}, que es un identificador alfanumérico único que nos permitirá referenciar dicho commit a futuro:
+\imagen{width=10cm}{imagenes/commit-parents.png}
+
+\subsection{Zonas de trabajo}
+
+Las \textit{zonas de trabajo} esenciales en Git son 4:
+\imagen{width=10cm}{imagenes/gitworkspaces.png}
+
+\begin{itemize}
+\item El \textbf{Workspace} o \textbf{Directorio Local} es la carpeta local dentro de nuestro PC en la cual hacemos los cambios de nuestro código. Solo en esta zona de trabajo podemos editar el código (con nuestro Editor de Texto Plano o IDE de preferencia).
+\item El \textbf{Index} o \textbf{Índice} mantiene una copia observada de todos los archivos de código editados en el Workspace. Cada vez que editemos un archivo, debemos agregarlo al Index para que pueda ser añadido a un commit.
+\item El \textbf{Local Repository} o \textbf{Repositorio Local} agrupa todas las copias observadas en el Index en forma de commits, es decir, el Local Repository es la zona de trabajo en la que se empaquetan los cambios de código (en forma de commit) para luego ser intercambiados con ambientes remotos.
+\item El \textbf{Remote Repository} o \textbf{Repositorio Remoto} es la única zona de trabajo que se ubica remotamente (las 3 anteriores son locales). Es la encargada de almacenar los commits que son enviados desde los diferentes Repositorios Locales y se encarga de distribuir los cambios a todos los usuarios del proyecto Git (todo esto de manera transparente al usuario).
+\end{itemize}
+
+\subsection{Comandos esenciales}
+
+A continuación mostraremos los comandos esenciales para crear y manejarte dentro de un proyecto Git:
+
+\subsubsection{Crear proyectos Git}
+
+Para crear un proyecto Git desde cero, nos posicionamos en una carpeta vacía, o que ya tenga código fuente, y ejecutamos la instrucción \texttt{git init}. Con esta instrucción la carpeta actual se transformará en un proyecto versionado por Git.
+
+Si contamos con una URL en SSH (o HTTPS) para nuestro repositorio remoto, podemos enlazarlo (como repositorio remoto de origen) a nuestro repositorio local con el comando \texttt{git remote add origin [URL]}. Un ejemplo sería (para SSH):
+\begin{verbatim}
+$ git remote add origin git@github.com:usuario/proyecto.git
+\end{verbatim}
+
+Si el repositorio remoto del proyecto ya existe (y tienes acceso a él), puedes \textit{clonar} dicho repositorio con todos sus commits actuales con el comando \texttt{git clone [URL]} (se creará un nuevo proyecto y se copiará todo el repositorio remoto en él, incluyendo el enlace al origen). Un ejemplo sería el siguiente:
+\begin{verbatim}
+$ git clone git@github.com:usuario/proyecto.git
+\end{verbatim}
+
+\noindent \textbf{IMPORTANTE:} Los comandos \texttt{git init} y \texttt{git clone} son excluyentes, es decir, solo es necesario ejecutar uno de los dos para iniciar un proyecto Git.
+
+\subsubsection{Crear y manejar commits}
+
+Una vez creado (o clonado) el proyecto Git, podemos empezar a incorporar el código fuente al \textit{Directorio Local} de trabajo. Supongamos que ya llevamos algo avanzado en un proyecto de C, y que hemos generado los archivos \textsf{main.c} y \textsf{biblioteca.h}, para marcar estos archivos como observados en nuestro proyecto (añadirlos al \textit{Index}), usamos el comando \texttt{git add [ARCHIVO]} de la siguiente forma:
+\begin{verbatim}
+$ git add main.c
+$ git add biblioteca.h
+\end{verbatim}
+
+\noindent \textbf{NOTA:} Si se desea marcar como observados varios archivos, un atajo útil es \texttt{git add --all}, que nos permite agregar todos los archivos recientemente editados al \textit{Index}.
+
+Una vez que hemos agregado al \textit{Index} todos los archivos necesarios, podemos agrupar estos cambios en un \textit{commit} con el comando \texttt{git commit -m [MENSAJE]}. Un ejemplo sería el siguiente:
+\begin{verbatim}
+$ git commit -m "Agregados archivos main.c y biblioteca.h al proyecto"
+\end{verbatim}
+
+\noindent \textbf{NOTA:} Es una buena costumbre en programación añadir un mensaje claro y conciso sobre los cambios de código que se incluyen en cada commit.
+
+Una vez que hemos agrupado uno o más commits, y deseemos subirlos al \textit{Repositorio Remoto}, utilizaremos el comando \texttt{git push [REMOTO] [RAMA]}. El uso más característico es el siguiente:
+\begin{verbatim}
+$ git push origin master
+\end{verbatim}
+
+\noindent \textbf{IMPORTANTE:} Nótese acá que definimos a \textit{origin} como repositorio remoto, que es la etiqueta por defecto. También definimos a \textit{master} como la rama actual, que es la fijada por defecto. En muchos casos no es necesario cambiar ni la rama, ni el repositorio remoto. Si deseas aprender más sobre el desarrollo en múltiples ramas, termina de leer esta sección y dirígete a la página \pageref{branch}.
+
+Por el contrario, si deseamos traer desde el \textit{Repositorio Remoto} todos los commits a nuestro ambiente local, ejecutamos \texttt{git pull [REMOTO] [RAMA]}, usualmente de esta forma:
+\begin{verbatim}
+$ git pull origin master
+\end{verbatim}
+
+\noindent \textbf{NOTA:} Otro elemento que se suele tomar en cuenta a este nivel es el tag HEAD, que es una referencia al último commit dentro de la rama actual (para saber más de los tags en Git, revisa la página \pageref{tag}).
+
+\subsubsection{Estado actual del Repositorio}
+
+Un comando adicional muy útil es \texttt{git status}, puede ser ejecutado en cualquier momento y nos dará información útil como la siguiente:
+\begin{itemize}
+\item Archivos que están en el Index
+\item Archivos que no están en el Index
+\item Último commit en el Repositorio Local
+\item Si nuestro Repositorio Local está ``adelantado''/``atrasado'' respecto del Repositorio Remoto (útil para saber cuando hacer \texttt{push} o \texttt{pull})
+\end{itemize}
+
+Por último, con el comando \texttt{git log} podemos ver una lista de nuestros últimos commits realizados, y un poco de información acerca de éstos.
+
+\subsubsection{Comandos y Zonas de trabajo}
+
+Una forma visual de ver los comandos recién explicados se resume en la siguiente imagen\cite{flow}: 
+
+\imagen{width=10cm}{imagenes/gitworkflow.png}
+
+En la imagen anterior vemos los comandos básicos que hemos enseñado en este manual, más algunos otros que quedan de tarea de investigación para quien esté interesado, aunque con lo que ya fue explicado acá basta para manejarse de forma básica en Git.
+
+\subsection{Consejos útiles}
+
+Recapitulando, hasta ahora hemos visto \texttt{git init} o \texttt{git clone} para inicializar Proyectos Git, los comandos \texttt{git add}, \texttt{git commit}, \texttt{git push} y \texttt{git pull} para manipular cambios y commits, y \texttt{git status} para verificar el estado de nuestro Repositorio Local.
+
+A continuación se darán una serie de consejos útiles para mantenerte por el ``buen camino'' en Git:
+
+\begin{itemize}
+\item \textbf{Agregar a los Repositorios solo archivos de texto plano}, Git está optimizado solo para archivos de estas características, es recomendable no subir documentos formateados, ni archivos multimedia, ni binarios compilados.
+\item \textbf{Git guarda únicamente las diferencias entre commits}, es útil saber que una vez subido el commit a los Repositorios, Git automáticamente calcula las diferencias entre los archivos anteriores y los nuevos, y guarda estas diferencias en el disco como commits efectivos (en vez de guardar los archivos completos). Esto solo funciona si has respetado el punto anterior.
+\item \textbf{Una iteración de trabajo en Git es \texttt{pull}-\texttt{add}-\texttt{commit}-\texttt{push}}, cada vez que inicies una sesión de trabajo en git, importa los cambios remotos, haz los tuyos, genera nuevos commits y empújalos al Repositorio Remoto. Repite esta secuencia hasta acabar el proyecto.
+\item \textbf{Siempre hacer \texttt{pull} antes de \texttt{push}}, antes de comenzar a editar, importa los cambios remotos. También es recomendable importar cambios antes de subir los commits al Remoto (si es que ha pasado mucho tiempo desde el último \texttt{pull}).
+\item \textbf{Git fusiona automáticamente los cambios}, por si no te lo has preguntado aún, al hacer \texttt{pull}, Git automáticamente detecta las diferencias de código entre los Repositorios Local y Remoto y fusiona todos los cambios hechos, dejando como prioritarios los cambios más recientes. Si bien el algoritmo de fusionado (merge) por defecto de Git puede ser salvador en muchas ocasiones, no es perfecto y a veces hay que recurrir a Mergetools externos para fusionar cambios conflictivos (hablaremos más de esto en la página \pageref{merge}).
+\item \textbf{Siempre incluir un README}, es una buena costumbre en los proyectos Git incluir un archivo \textsf{README.txt} (en texto plano) o \textsf{README.md} (en formato Markdown) explicando el nombre del proyecto, sus autores, su función e instrucciones de compilación/ejecución. Dicho README debe ir ubicado en el directorio raíz del Proyecto Git.
+\item \textbf{Siempre incluir un GITIGNORE}, es una buena costumbre incluir un archivo de texto plano llamado \textsf{.gitignore} (nótese que comienza con punto) en el directorio raíz del proyecto Git. El archivo GITIGNORE incluye el nombre de los archivos y carpetas a excluir en los commits de nuestro proyecto (muy útil para excluir ejecutables y archivos multimedia) y es leído por el cliente Git cada vez que creamos un nuevo commit. Un ejemplo de su contenido es el siguiente:
+\begin{verbatim}
+/build/*
+biblioteca.so
+*.class
+*.jpg
+*.wav
+\end{verbatim}
+Este GITIGNORE excluye de los commits del proyecto la carpeta \textsf{build}, el archivo \textsf{biblioteca.so} y todos los archivos con extensiones \textsf{class}, \textsf{jpg} y \textsf{wav}.
+\end{itemize}
+
+\noindent \textbf{NOTA:} Cada vez que iniciamos o clonamos un Proyecto Git, se crea en el directorio seleccionado una carpeta oculta \textsf{.git} que contiene todos los commits del repositorio. Es importante no editar bajo ningún motivo los contenidos de esta carpeta, y garantizar los derechos de lectura y escritura sobre la misma.
+
+\pagebreak
+
+\subsection{Programación colaborativa con Git}
+
+La gran ventaja de usar un sistema de control de versiones como Git reside en que permite a múltiples usuarios ver y editar el código en instancias simultáneas, lo que permite reducir los tiempos de programación al emplear varios desarrolladores en la tarea.
+
+Lo más importante y primordial para la programación colaborativa con Git, es que todos los comandos y acciones que hemos definido anteriormente son también válidos para un entorno Git multiusuario, con el único alcance que hay que tener algo más de cuidado a la hora de hacer \texttt{push} (para evitar romper el código en el Repositorio Remoto) y \textit{pull} (para evitar traer cambios que puedan romper el Directorio Local). Cada programador del proyecto tendrá su Repositorio Local propio, pero el Repositorio Remoto será compartido, y será tarea del servidor Git ordenar los commits y distribuirlos a todos los miembros del proyecto.
+
+Adicionalmente a los consejos vistos en la subsección anterior, se añaden los siguientes (para ambientes multiusuario):
+
+\begin{itemize}
+\item \textbf{Un \texttt{commit} debe ser siempre funcional}, hay dos características esenciales que un commit debe tener: Un commit debe compilar sin errores y además debe implementar características completas al proyecto. Si cualquiera de estos principios no se cumple, estamos entorpeciendo la labor del grupo de trabajo, ya que estaríamos aportando código con errores o haciendo ``commits no funcionales'' que incorporan funcionalidades a medias. Queda a criterio de cada programador definir que es una ``característica completa''.
+\item \textbf{Cuidado al hacer \texttt{pull}}, si estás desarrollando una característica nueva en el proyecto o arreglando algún bug importante, lo mejor es retrasar el \texttt{pull} hasta que dichos cambios sean concretados en un \texttt{commit}. Una vez que esté listo, podemos traer los cambios desde el repositorio remoto y fusionarlos con el commit recién hecho.
+\item \textbf{Cuidado al hacer \texttt{push}}, si tienes uno o más commits en tu Repositorio Local y deseas empujarlos al Repositorio Remoto, asegúrate que todos ellos sean ``commits funcionales''.
+\item \textbf{Medir la granularidad de los commits}, algunos programadores de Git prefieren los commits de \textit{alta granularidad} (es decir, muchos commits con pocas líneas de código cada uno), otros prefieren la \textit{baja granularidad} (pocos commits pero con muchas líneas de código cada uno). Es importante en los proyectos acordar de antemano la granularidad de los commits con los demás programadores, o en caso contrario saber cómo gestionar commits de distinta granularidad.
+\end{itemize}
+
+Recuerda que \textit{solo la práctica hace al maestro}. Lo importante es que siempre se aprende algo nuevo al integrar Git con nuestros proyectos. Al principio es muy probable que hayan ocasiones en que se rompa el código o el repositorio entero, pero el enfrentar estas experiencias forman al buen programador. Como último ``tip'', recuerda siempre recurrir a buscadores web (como Google) para aquellos problemas o dudas que no puedas resolver, se recomienda hacer estas búsquedas en inglés para maximizar el número de soluciones posibles.
+
+\pagebreak
+
+\section{Instalando Git}\label{install}
+
+\subsection{GNU/Linux}
+
+Para instalar Git en distribuciones basadas en Debian (como Ubuntu y Linux Mint), ejecuta el siguiente comando en la terminal:
+\begin{verbatim}
+$ sudo apt-get install git
+\end{verbatim}
+
+En otras distribuciones el paquete a instalar se suele llamar \textit{git}. También es importante tener una Herramienta de Fusionado o Mergetool, en este caso instalaremos \textbf{KDiff3}\cite{kdiff} de la siguiente manera:
+\begin{verbatim}
+$ sudo apt-get install kdiff3-qt
+\end{verbatim}
+
+Una vez instalado Git, se le debe indicar tu nombre de usuario y tu correo electrónico (para que todos tus commits sean identificados con estas credenciales) además de la Mergetool por defecto a utilizar (en este caso, KDiff3). Para ello introduce en la terminal estos 3 comandos (reemplaza el nombre y correo por tus identificadores propios):
+\begin{verbatim}
+$ git config --global user.name "Juan Pérez"
+$ git config --global user.email juan.perez@usach.cl
+$ git config --global merge.tool kdiff3
+\end{verbatim}
+
+Git usa una llave SSH para validar los commits enviados a servidores remotos. Es importante crear esta llave en cada equipo que se vaya a utilizar en el desarrollo, y asegurar que el servidor remoto conozca la llave pública de cada equipo\cite{sshkey}. Para crear una llave SSH, primero ingresamos:
+\begin{verbatim}
+$ ssh-keygen -t rsa -b 4096 -C "juan.perez@usach.cl"
+\end{verbatim}
+
+Reemplazando el correo por el usado en la configuración de credenciales. Luego nos pedirá crear una passphrase para la llave, usualmente se deja en blanco (o se puede definir una a gusto). Ahora activamos el Agente SSH y le añadimos la llave recién creada para que la almacene y utilice:
+\begin{verbatim}
+$ eval "$(ssh-agent -s)"
+$ ssh-add ~/.ssh/id_rsa
+\end{verbatim}
+
+Por último, le decimos (con el comando \textit{cat}) que nos muestre la porción pública de la llave SSH, la cual copiaremos en el servidor git remoto a utilizar:
+\begin{verbatim}
+$ cat ~/.ssh/id_rsa.pub
+\end{verbatim}
+
+¡Listo! Ahora podrás usar las instrucciones aprendidas en la sección anterior como comandos en la terminal para controlar el versionamiento de tu proyecto con Git.
+
+\pagebreak
+
+\subsection{Microsoft Windows}
+
+Para Microsoft Windows es recomendable descargar el frontend \textbf{Git Extensions} para poder manejar Git desde una GUI.
+
+Descarga de Git: \textsf{https://gitextensions.github.io/}
+
+\noindent \textbf{IMPORTANTE:} Se recomienda bajar la versión \textit{Complete Setup} de Git Extensions, que trae todo lo necesario para establecer un ambiente de control de versiones (Cliente Git, Frontend y Mergetool\cite{kdiff}).
+
+Iniciamos la instalación:
+\imagen{width=7cm}{capturas/wingit/wingit01.png}
+
+Escogemos si se va a instalar GitExtensions para todos los usuarios, o solo para el usuario actual:
+\imagen{width=7cm}{capturas/wingit/wingit02.png}
+
+En este paso es importante marcar todo como software requerido:
+\imagen{width=7cm}{capturas/wingit/wingit03.png}
+
+Escogemos el directorio donde se instalará (usualmente es mejor dejarlo por defecto):
+\imagen{width=7cm}{capturas/wingit/wingit04.png}
+
+Acá vemos que features de Git Extensions vamos a instalar (si no estás seguro, mejor dejarlo por defecto):
+\imagen{width=7cm}{capturas/wingit/wingit05.png}
+
+En este paso se recomienda usar PuTTY como cliente SSH para Windows (se instalará junto con Git Extensions):
+\imagen{width=7cm}{capturas/wingit/wingit06.png}
+
+Iniciamos la instalación:
+\imagen{width=7cm}{capturas/wingit/wingit08.png}
+
+A mitad de instalación, se iniciará el instalador de KDiff3 (el Mergetool), se recomienda avanzar a través del instalador dejando todo por defecto:
+\imagen{width=7cm}{capturas/wingit/wingit09.png}
+
+Luego vendrá el instalador de git-scm (el módulo principal del cliente Git), lo recomendable es hacer lo mismo que con KDiff3 y dejar que se instale con todas las configuraciones por defecto:
+\imagen{width=7cm}{capturas/wingit/wingit16.png}
+
+Una vez terminada la instalación, se abrirá Git Extensions. Se recomienda encarecidamente usar la interfaz en inglés, para usar los mismos conceptos (sin traducir) que se utilizan en Git para terminal GNU/Linux:
+\imagen{width=7cm}{capturas/wingit/wingit25.png}
+
+Se iniciará el checklist de configuraciones de Git Extensions, lo más probable es que solo falte configurar el Nombre y Correo del Autor de los commits:
+\imagen{width=7cm}{capturas/wingit/wingit26.png}
+
+Hacemos click en \textit{Repair} y añadimos ambos datos:
+\imagen{width=7cm}{capturas/wingit/wingit27.png}
+
+Luego tedremos nuestro ambiente de Git Extensions casi listo:
+\imagen{width=7cm}{capturas/wingit/wingit28.png}
+
+Para crear una llave SSH, vamos a \textit{Tools}, luego a \textit{PuTTY} y luego a \textit{Generate or import key}. En la nueva ventana hacemos click en \textit{Generate} para empezar a generar la llave:
+\imagen{width=7cm}{capturas/wingit/wingit29.png}
+
+La llave SSH se genera en base al movimiento del ratón, una vez generada, guardamos ambas partes de la llave con \textit{Save public key} y \textit{Save private key}:
+\imagen{width=7cm}{capturas/wingit/wingit30.png}
+
+Una vez guardadas ambas partes de la llave, abrimos con un Editor de Texto Plano el archivo con la llave pública, y copiamos su contenido en nuestro Servidor Remoto de Git.
+
+\pagebreak
+
+\section{Interacción con Servidores Públicos de Git}\label{host}
+
+Gran parte de las veces trabajamos como freelancer o no contamos con servidores privados para poder levantar Proyectos Git, es por eso que a continuación documentamos como usar 2 de los más grandes proveedores de repositorios públicos (y gratuitos) de Git: \textbf{BitBucket} y \textbf{GitHub}.
+
+\subsection{BitBucket}
+
+\subsubsection{Características}
+
+\begin{itemize}
+\item Repositorios públicos y privados ilimitados.
+\item Control de Ramas, Issue Tracking y Wiki.
+\item Fácil integración con JIRA, Confluence y HipChat.
+\item Recomendado para proyectos personales y trabajos prácticos académicos.
+\end{itemize}
+
+\subsubsection{Interfaz web}
+
+Accedemos primero a \textsf{https://bitbucket.org/} y somos bienvenidos por la siguiente pantalla:
+\imagen{width=10cm}{capturas/bb01.png}
+
+Una vez que hayamos creado una cuenta en BitBucket (proceso muy sencillo) y nos hayamos logueado con esta, nos recibe la siguiente vista, que muestra todos los proyectos que tengamos:
+\imagen{width=10cm}{capturas/bb02.png}
+
+Al clickear cualquier proyecto, nos aparece la siguiente vista, en el menú de la izquierda podremos elegir ver la descripción del proyecto, sus commits, sus ramas y otras configuraciones:
+\imagen{width=10cm}{capturas/bb03.png}
+
+\subsubsection{Cargar Llaves SSH}
+Para insertar la llave pública SSH de nuestro equipo local en BitBucket, hacemos click en el símbolo de nuestro avatar (esquina superior derecha) y escogemos \textit{Settings}:
+\imagen{width=10cm}{capturas/bb04.png}
+
+Acá podemos ajustar nuestras opciones de usuario, pero nos interesa buscar en el menú de la izquierda la opción \textit{SSH keys}:
+\imagen{width=10cm}{capturas/bb05.png}
+
+Dentro de \textit{SSH Keys}, podremos asociar las llaves públicas SSH a nuestra cuenta de BitBucket con el botón \textit{Add key}:
+\imagen{width=10cm}{capturas/bb06.png}
+
+\pagebreak
+
+\subsection{GitHub}
+
+\subsubsection{Características}
+
+\begin{itemize}
+\item Repositorios públicos ilimitados.
+\item Control de Ramas, Issue Tracking y Wiki.
+\item Capacidad para manejar Organizaciones y Teams de Trabajo.
+\item Recomendado para proyectos Open Source y proyectos públicos de gran escala.
+\end{itemize}
+
+\subsubsection{Interfaz web}
+
+Accedemos a \textsf{https://github.com/} y seremos recibidos por la siguiente vista:
+\imagen{width=10cm}{capturas/gh01.png}
+
+Una vez creada nuestra cuenta en el menú \textit{Sign up}, nos logeamos con la opción \textit{Sign in}, y podremos ver una lista con las últimas noticias de nuestros repositorios en GitHub:
+\imagen{width=10cm}{capturas/gh02.png}
+
+En los menús de la derecha podemos ver nuestros últimos proyectos en los que hemos trabajado, al seleccionar uno de éstos, seremos recibidos por la vista de repositorio (los menús de commits, issues, ramas y otros ajustes del repo está en la barra superior debajo del título del proyecto):
+\imagen{width=10cm}{capturas/gh03.png}
+
+\subsubsection{Cargar Llaves SSH}
+
+Para insertar las llaves públicas SSH de nuestros equipos en GitHub, hacemos click en el ícono de nuestro avatar (esquina superior derecha), y ahí hacemos click en \textit{Settings}:
+\imagen{width=10cm}{capturas/gh04.png}
+
+Acá podremos ajustar nuestras configuraciones de usuario, si lo deseamos. Pero para la insertar la llave SSH nos interesa el menu \textit{SSH keys}, ubicado en el menú de la izquierda:
+\imagen{width=10cm}{capturas/gh05.png}
+
+Dentro del menu \textit{SSH Keys} podremos asociar una nueva llave SSH con GitHub con el botón \textit{Add SSH key}, o podremos borrar aquellas llaves que no necesitemos con \textit{Delete}:
+\imagen{width=10cm}{capturas/gh06.png}
+
+\pagebreak
+
+\section{Uso avanzado de Git}\label{adv}
+
+Una vez comprendidos y dominados los aspectos básicos de Git, es hora de pasar a conceptos ligeramente más complejos, pero de mucha utilidad a la hora de gestionar proyectos Git (se utilizará la sintaxis de Git de terminal GNU/Linux para expresar los nuevos comandos).
+
+\subsection{Merging: Fusionando cambios de código}\label{merge}
+
+Muchas veces necesitaremos tirar y fusionar commits que no son nuestros con nuestro Directorio Local. El cliente Git por defecto trae algunos algoritmos automáticos para lidiar con fusiones de código, pero para aquellos cambios conflictivos es necesario contar con una Mergetool (herramienta de fusionado) externa. En la sección \textsc{Instalando Git} (página \pageref{install}) se instaló y configuró \textbf{KDiff3} como mergetool, asi que trabajaremos con esta herramienta para cualquier conflicto de fusionado.
+
+Cada vez que Git de terminal GNU/Linux indique el siguiente error (usualmente tras un \texttt{pull} o un \texttt{merge}), será necesario usar la mergetool:
+\begin{verbatim}
+Automatic merge failed; fix conflicts and then commit the result.
+\end{verbatim}
+
+Como ya está configurada la herramienta de fusionado, bastará con ejecutar \texttt{git mergetool} para que inicie el GUI de KDiff3\cite{mergeguys}:
+\imagen{width=14cm}{capturas/merge01.png}
+
+Acá vemos el layout dividido en 4 regiones. Las 3 regiones superiores corresponden al ancestro en común del archivo (columna A), la versión en el Repositorio Local (columna B) y la versión que estamos tirando desde un Repositorio Remoto (columna C). La región inferior muestra el archivo final tras las fusiones.
+
+Para arreglar el conflicto, buscaremos las lineas marcadas como \textit{Merge Conflict} en la región inferior, haremos click derecho en éstas y escogeremos cual de las 3 versiones deseamos implementar (columna A, B o C). Podemos escoger más de una versión, o ninguna, de ser necesario:
+\imagen{width=14cm}{capturas/merge02.png}
+
+Nótese que acá estamos lidiando manualmente con los conflictos de fusionado, se recomienda tener discreción (estar seguro de lo que se está haciendo) al escoger los cambios a concretar. Una vez que se hayan solucionado todos los conflictos de fusionado de este archivo, lo guardaremos (click en el ícono de diskette en la barra de herramientas) y cerraremos KDiff3:
+\imagen{width=14cm}{capturas/merge03.png}
+
+Si hay conflictos de fusionado en más de un archivo, Git nos consultará si deseamos abrir KDiff3 de nuevo, pero para solucionar los conflictos de otro archivo, y asi procederemos de la misma manera (uno a uno) para todos los archivos con conflicto de fusionado.
+
+Luego de haber terminado con los conflictos de fusionado, ejecutaremos \texttt{git commit} (tal cual) para hacer un nuevo commit guardando los cambios recién realizados.
+
+\pagebreak
+
+\subsection{Rollbacking: Volviendo a estados anteriores del código}\label{rollback}
+
+Una de las características más apreciadas de Git (junto con facilitar la programación colaborativa) es la acción de guardar las versiones de código (snapshots) en commits. En esta parte enseñaremos como hacer una ``vuelta atrás'' o \textit{rollback} a un commit anterior dentro del proyecto.
+
+Muchas veces se hace necesario recurrir a esta técnica ya que algún miembro del proyecto puede introducir (sin querer) commits que rompen el código.
+
+Hay varias formas de hacer un rollback en Git. Si deseamos deshacer los cambios de uno o más commits, utilizaremos \texttt{git revert}. Si queremos deshacer toda la historia de una serie de commits, usaremos \texttt{git reset}.
+
+Primero que todo, supongamos que tenemos el siguiente historial en nuestro proyecto de Git (podemos verlo asi usando el comando \texttt{git log --oneline}):
+\begin{verbatim}
+1f1a4ae Continuar haciendo cosas locas
+5e05d51 Intentando algo loco
+4f88cf8 Hechos cambios importantes sobre main.c
+2ec1363 Creado main.c
+548217b Commit inicial
+\end{verbatim}
+
+El comando \texttt{git revert} permite deshacer los cambios de uno o más commits, sin alterar el resto de la historia del proyecto. El comando se utiliza como \texttt{git revert [HASH]}, como en el siguiente ejemplo:
+\begin{verbatim}
+$ git revert 5e05d51
+\end{verbatim}
+
+Se generará un nuevo commit en el HEAD del proyecto deshaciendo todos los cambios de los commits indicado por su hash (en este caso, el commit \texttt{5e05d51})\cite{undoing}.
+\imagen{width=10cm}{imagenes/rollback03.png}
+
+O también puede funcionar con rangos respecto a HEAD, en el siguiente ejemplo, se hace utilizamos una variante de revert para deshacer los últimos 3 commits:
+\begin{verbatim}
+$ git revert --no-commit HEAD~3..HEAD
+$ git commit -m "Rollback de los últimos 3 commits"
+\end{verbatim}
+
+Esta es la forma ``suave'' de deshacer cambios para llegar a estados anteriores. La forma ``dura'' es usando \texttt{git reset [HASH]}. Este comando borra permanentemente todos los cambios hasta llegar al commit con el hash indicado. Por ejemplo, si queremos volver al estado del commit \texttt{4f88cf8} deshaciendo toda la historia posterior, ejecutamos lo siguiente:
+\begin{verbatim}
+$ git reset 4f88cf8
+\end{verbatim}
+
+Un uso alternativo para \texttt{git reset} es cuando se quieren deshacer permanentemente todos los cambios locales (no agrupados en commit) y regresar al último commit en el Repositorio Local:
+\begin{verbatim}
+$ git reset --hard HEAD
+\end{verbatim}
+
+Una vez regresado al estado anterior con \texttt{git reset}, se pueden hacer nuevos cambios y añadirlos al repositorio. Es importante notar que siempre se recomienda usar \texttt{revert} en vez de \texttt{reset}, y si es necesario utilizar este último, usarlo exclusivamente a nivel de Repositorio Local para evitar problemas con el resto del equipo de trabajo.
+\imagen{width=10cm}{imagenes/rollback04.png}
+
+\pagebreak
+
+\subsection{Tagging: Identificando commits para publicación}\label{tag}
+En secciones anteriores hemos visto el tag HEAD, que representa el último commit en la rama actual, este es un tag por defecto y no administrable por el usuario. ¿Pero qué pasa si queremos crear y administrar nuestros propios tags? Un tag en Git es muy útil para el versionado del código, además podemos marcar nuestros commits para publicarse con un tag y así facilitar la tarea a otros usuarios que necesiten descargar nuestro proyecto.
+
+En la siguiente imagen vemos un ejemplo de la aplicación de tags (representados en amarillo) sobre los commits\cite{tag365}:
+\imagen{width=7cm}{imagenes/git-tag.png}
+
+Un tag en Git es un alias para los hash de commits, usualmente para facilitar la identificación y legibilidad de éste. Un tag está compuesto por un número de versión y un mensaje. Para crear un tag sobre el último commmit (el HEAD) usaremos el comando \texttt{git tag -a [VERSIÓN] -m [MENSAJE]} de la siguiente manera:
+\begin{verbatim}
+$ git tag -a v1.0 -m "Release final del producto"
+\end{verbatim}
+
+Para crear un tag sobre cualquier otro commit del proyecto, usaremos el comando \texttt{git tag -a [VERSIÓN] -m [MENSAJE] [HASH]}. Por ejemplo, para aplicar un tag sobre el commit \texttt{1f1a4ae}, lo hacemos de la siguiente forma:
+\begin{verbatim}
+$ git tag -a v1.1 -m "Parche para bug en la GUI principal" 1f1a4ae
+\end{verbatim}
+
+Por defecto, todos los tags creados quedan en tu Repositorio Local, para llevarlos al Repositorio Remoto puedes usar \texttt{git push [REMOTO] [VERSIÓN]} para empujarlos uno a uno, o \texttt{git push [REMOTO] --tags} para empujarlos todos a la vez. Recuerda que el Repositorio Remoto por defecto en Git es \texttt{origin}.
+
+Para listar todos los tags del proyecto, usa \texttt{git tag} (tal cual). Para ver el commit y la información asociada al tag, usa \texttt{git show [VERSIÓN]}.
+
+\pagebreak
+
+\subsection{Stashing: Guardando código para el futuro}\label{stash}
+
+Esta es una situación que puede pasar más de alguna vez cuando se está trabajando con proyectos Git: Estamos desarrollando tranquilamente, cuando uno de nuestros compañeros de equipo incorpora una característica importante que afecta a nuestro desarrollo. Siendo que nuestra característica aún está incompleta, no corresponde hacer un commit aún, pero tampoco queremos perder nuestro desarrollo volviendo al último commit para poder traer los nuevos cambios.
+
+Aquí viene un nuevo concepto, el \textit{stash}. Un \textit{stash} es una instancia especial que permite agrupar y almacenar cambios de código sin implícitamente realizar un commit. Al crear un \textit{stash} todos los cambios sobre el Directorio Local son almacenados en éste, y luego se vuelve automáticamente al último commit (el HEAD). Una vez estando en el HEAD podemos realizar los cambios necesarios, para luego re-aplicar los cambios del \textit{stash} sobre el Directorio Local cuando se estime conveniente.
+
+Antes de crear un \textit{stash} conviene hacer \texttt{git status} para saber que cambios serán escritos en el nuevo \textit{stash}. Luego ejecutamos \texttt{git stash} para crear el nuevo \textit{stash}. Podemos generar más de un \textit{stash} de ser necesario.
+
+\begin{verbatim}
+$ git stash
+Saved working directory and index state \
+  "WIP on master: 1f1a4ae Continuar haciendo cosas locas"
+HEAD is now at 1f1a4ae Continuar haciendo cosas locas
+(To restore them type "git stash apply")
+\end{verbatim}
+
+Para ver la lista actual de stashes, usamos \texttt{git stash list}:
+\begin{verbatim}
+$ git stash list
+stash@{0}: WIP on master: 1f1a4ae Continuar haciendo cosas locas
+stash@{1}: WIP on master: 5e05d51 Intentando algo loco
+stash@{2}: WIP on master: 4f88cf8 Hechos cambios importantes sobre main.c
+\end{verbatim}
+
+Para restaurar el último stash se usa \texttt{git stash apply}, o si se quiere recuperar un stash anterior en la lista, procedemos de la siguiente forma:
+\begin{verbatim}
+$ git stash apply stash@{2}
+\end{verbatim}
+
+Para eliminar un stash que ya no sea necesario, se procede asi:
+\begin{verbatim}
+$ git stash drop stash@{2}
+\end{verbatim}
+
+\pagebreak
+
+\subsection{Branching: El arte del código ramificado}\label{branch}
+
+En secciones anteriores se vio que Git emplea a \texttt{master} como rama por defecto para todos los proyectos Git. Una de las grandes ventajas de Git por sobre otros sistemas de versionamiento de código es el poder crear múltiples \textit{branches} o ramas que nos permitan ``dividir y conquistar'' cualquier proyecto de software, sin importar el tamaño.
+
+\imagen{width=10cm}{imagenes/git-history.png}
+
+Para crear una nueva rama, usamos \texttt{git branch [RAMA]}, de la siguiente forma:
+\begin{verbatim}
+$ git branch nice_feature
+\end{verbatim}
+
+Para cambiar de rama, usamos \texttt{git checkout [RAMA]}, de la siguiente forma:
+\begin{verbatim}
+$ git checkout nice_feature
+\end{verbatim}
+
+Nótese que el HEAD cambiará al último commit de la nueva rama. Como acabamos de crear \texttt{nice\_feature}, el commit al que apunta el HEAD será el mismo que el último commit de la rama anterior. Una vez en la nueva rama, podemos trabajar de la misma manera en la que lo hacíamos en \texttt{master}, pero sin alterar los commits de las otras ramas. Esto es muy útil a la hora de incorporar nuevas características sin afectar el código que ya está estable.
+
+Una vez que nuestra nueva característica ya está implementada, y deseemos fusionar su contenido con la rama \texttt{master} (o la que estimemos conveniente), ejecutamos \texttt{git checkout} a la rama donde deseemos importar el código y luego \texttt{git merge} de la siguiente forma:
+\begin{verbatim}
+$ git checkout master
+$ git merge nice_feature
+\end{verbatim}
+
+Nótese aquí dos cosas: Primero, al hacer merge, es posible que los cambios se fusionen automáticamente o sea necesario hacerlo manualmente con un mergetool (ver página \pageref{merge}). Segundo, para fusionar cambios entre ramas, siempre es necesario hacer \texttt{checkout} a la rama destino y luego hacer \texttt{merge} para traer los cambios de la rama de origen.
+
+La fusión de ramas será representada en un nuevo commit al finalizar. Las ramas pueden seguir siendo usadas tras una fusión (es más, es posible fusionar múltiples veces una rama con otra, siempre que hayan cambios desde la útima fusión).
+
+Para un ``manejo inteligente'' de las ramas, se recomienda dejar la rama \texttt{master} para todo el código estable y listo para ser distribuido (se recomienda también apoyarse en los tags para esto) y dejar las ramas para nuevas características para implementar al código (así tambien como bugfixes y mejoras menores). Hay variados esquemas para organizar las ramas en Git, sin embargo Git en si no impone ningún esquema en específico, es responsabilidad del desarrollador utilizar o crear un esquema de ramas que le convenga y facilite la tarea.
+
+\pagebreak
+
+\section{Miscelánea}\label{misc}
+
+\subsection{Acerca del autor}
+
+\textbf{Daniel Gacitúa Vásquez} es un estudiante de Ingeniería de Ejecución en Computación e Informática de la Universidad de Santiago de Chile (USACH). Miembro del Staff de la Comunidad GNU/Linux USACH. Ha dictado en varias ocasiones el \textit{Taller de Programación Colaborativa con Git} en dicha casa de estudios.
+
+\subsection{Agradecimientos}
+
+\begin{itemize}
+\item Al Staff de la \textbf{Comunidad GNU/Linux USACH} por brindarme su apoyo para elaborar este texto.
+\item A \textbf{Felipe Garay} por enseñarme lo básico para iniciar en el mundo del versionado con Git.
+\item Al \textbf{Departamento de Ingeniería Informática de la USACH} por proveerme de las herramientas tecnológicas para poder construir este Manual.
+\end{itemize}
+
+\subsection{Ediciones al manual}
+\begin{itemize}
+\item \textbf{17-12-2015 (v0.1)} Inicio de la creación del Manual
+\item \textbf{20-12-2015 (v0.2)} Elaborado esquema base del Manual
+\item \textbf{24-12-2015 (v0.3)} Funcionalidad básica del Manual terminada
+\item \textbf{26-12-2015 (v0.4)} Primera versión preliminar del Manual completada
+\item \textbf{13-01-2016 (v0.5)} Segunda versión preliminar del Manual completada
+\item \textbf{14-01-2016 (v1.0)} Primera versión pública
+\end{itemize}
+
+\pagebreak
+
+\section{Bibliografía y Referencias}
+\printbibliography[heading=none]
+
+\end{document}
