@@ -1,0 +1,256 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb}
+\usepackage{color,graphicx}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+
+\pdfinfo{
+  /Title (Cheatsheet Comandos de Git)
+  /Creator (TeX)
+  /Producer (pdfTeX 1.40.0)
+  /Author (Daniel Gacitúa Vásquez)
+  /Subject (Comandos Git)
+  /Keywords (cheatsheet, git)}
+
+% This sets page margins to .5 inch if using letter paper, and to 1cm
+% if using A4 paper. (This probably isn't strictly necessary.)
+% If using another size paper, use default 1cm margins.
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+    { \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+    {\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+    }
+
+% Turn off header and footer
+\pagestyle{empty}
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+%My Environments
+\newtheorem{example}[section]{Example}
+
+
+%% ------------------------------------------------------------------------- %%
+
+\newcommand{\tablainicio}{
+    \begin{tabular}{@{}ll@{}}
+}
+
+\newcommand{\tablafin}{
+    \end{tabular}
+}
+
+\newcommand{\tablacomando}[2]{
+    \texttt{#1} & #2 \\
+}
+
+\newcommand{\comandolargo}[2]{
+    \raggedright{\small{\texttt{#1}}} \\
+    \raggedleft{\footnotesize{#2}} \\
+    \raggedright
+}
+
+\newcommand{\comandomultiple}[1]{
+    {\footnotesize
+    {\ttfamily
+        #1
+    }
+    }
+}
+
+\newcommand{\imagen}[2]{
+    \begin{center}
+    \noindent \includegraphics[#1]{#2}
+    \end{center}
+}
+
+\begin{document}
+
+\LARGE{Cheatsheet: Comandos Esenciales de Git}\\
+\small{Elaborado por \textbf{Daniel Gacitúa Vásquez} para la \textbf{Comunidad GNU/Linux USACH}}\\
+\small{Más documentación en \textsf{http://cglusach.github.io/manualgit/}}
+
+\raggedright
+\raggedcolumns
+%%\footnotesize
+\begin{multicols}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+
+\section{Instalar Git en GNU/Linux}
+
+\subsection{Instalar Git:}
+
+\comandomultiple{sudo apt-get install git kdiff3-qt}
+    
+\subsection{Configurar Git:}
+    
+\comandomultiple{
+    git config --global user.name "[NOMBRE] [APELLIDO]"\\
+    git config --global user.email [CORREO]\\
+    git config --global merge.tool kdiff3\\
+}
+    
+\subsubsection{Crear llave SSH:}
+
+\comandomultiple{
+    ssh-keygen -t rsa -b 4096 -C "[CORREO]"\\
+    eval "\$(ssh-agent -s)"\\
+    ssh-add ~/.ssh/id\_rsa\\
+    cat ~/.ssh/id\_rsa.pub\\
+}
+    
+\footnotesize Copiar la salida del comando \texttt{cat} en el gestor de repositorios remotos (GitHub, BitBucket, etc.)
+
+
+\section{Iniciar un repositorio}
+
+\comandolargo{git init}{Inicia un Repositorio Git vacío}
+\comandolargo{git remote add [REMOTO] [URL]}{Establece una URL de Repo Remoto (usar con \texttt{git init})}
+\comandolargo{git clone [URL]}{Copia un Repositorio Remoto desde la URL indicada}
+
+
+\section{Comandos Básicos}
+
+\comandolargo{git add [ARCHIVO]}{Agregar un archivo al Index}
+\comandolargo{git add --all}{Agregar todos los archivos al Index}
+\comandolargo{git commit -m "[MENSAJE]"}{Generar un commit con los archivos en el Index}
+\comandolargo{git pull [REMOTO] [RAMA]}{Tirar commits desde el Repositorio Remoto}
+\comandolargo{git push [REMOTO] [RAMA]}{Empujar commits hacia el Repositorio Remoto}
+
+
+\section{Estado actual del repositorio}
+
+\comandolargo{git status}{Revisar estado del Repositorio Local}
+\comandolargo{git log}{Revisar últimos commits en el Repositorio Local}
+\comandolargo{git diff}{Muestra las diferencias entre el Directorio Local y el Index}
+
+
+
+
+\columnbreak
+
+\section{Merging}
+
+\comandolargo{git mergetool}{Abrir herramienta de fusionado}
+
+
+\section{Rollbacking}
+
+\comandolargo{git revert [HASH]}{Revertir commit, generando uno nuevo}
+\comandolargo{git revert --no-commit HEAD\~{}\#..HEAD}{Revertir últimos `\texttt{\#}' commits, dejando los cambios en el Index}
+\comandolargo{git reset [HASH]}{Deshacer permanentemente los cambios hasta el commit}
+\comandolargo{git reset --hard HEAD}{Deshacer cambios locales hasta el último commit}
+
+
+\section{Tagging}
+
+\comandolargo{git tag -a [VERSIÓN] -m "[MENSAJE]"}{Etiqueta el último commit}
+\comandolargo{git tag -a [VERSIÓN] -m "[MENSAJE]" [HASH]}{Etiqueta el commit indicado}
+\comandolargo{git push [REMOTO] --tags}{Empujar todas las etiquetas al Repositorio Remoto}
+\comandolargo{git tag}{Ver lista de etiquetas del proyecto}
+\comandolargo{git show [VERSIÓN]}{Ver la información del commit asociada al tag}
+
+
+\section{Stashing}
+
+\comandolargo{git stash}{Crea un stash y limpia el Directorio Local}
+\comandolargo{git stash list}{Muestra una lista de los stashes en el Repositorio Local}
+\comandolargo{git stash apply}{Aplica el último stash sobre el Repositorio Local}
+\comandolargo{git stash apply stash@\{\#\}}{Aplica el stash numerado sobre el Repo Local (ej: \texttt{stash@\{1\}})}
+\comandolargo{git stash drop stash@\{\#\}}{Elimina el stash numerado del Repo Local (ej: \texttt{stash@\{1\}})}
+
+
+\section{Branching}
+
+\comandolargo{git branch [RAMA]}{Crear una nueva rama}
+\comandolargo{git checkout [RAMA]}{Cambiar a la rama indicada}
+\comandolargo{git merge [RAMA]}{Fusionar cambios desde la rama indicada a la actual}
+
+
+\columnbreak
+
+\section{Ejemplos}
+
+\subsection{Comandos Básicos}
+
+\comandomultiple{
+    git init\\
+    git remote add origin git@github.com:user/proyecto.git\\
+    git add README.txt\\
+    git add main.c\\
+    git commit -m "Añadidos README y main.c"\\
+    git push origin master\\
+    git pull origin master
+}
+
+\subsection{Otros Comandos}
+
+\comandomultiple{
+    git revert 5e05d51\\
+    git revert --no-commit HEAD\~{}10..HEAD\\
+    git reset 6f11a20\\
+    git tag -a v1.0 -m "Versión final del producto"\\
+    git tag -a v1.1 -m "Hotfix de día cero" f12a56c\\
+    git push origin --tags\\
+    git show v1.1\\
+    git branch fix01\\
+    git checkout master\\
+    git merge fix01
+}
+
+\section{Zonas de trabajo de Git}
+
+{\footnotesize
+
+\begin{itemize}
+\item Workspace (o Directorio Local)
+\item Index (o Índice)
+\item Local Repository (o Repositorio Local)
+\item Remote Repository (o Repositorio Remoto)
+\end{itemize}
+
+}
+
+\imagen{width=7.5cm}{imagenes/gitworkflow.png}
+
+\end{multicols}
+
+\end{document}
