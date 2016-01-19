@@ -1,0 +1,43 @@
+\documentclass[t]{beamer}  
+\usetheme{Berkeley}                 
+\usecolortheme{solarized}
+\setbeamertemplate{navigation symbols}{} %sin simbolos de navegacion
+
+\usepackage{lmodern}
+
+\usepackage{ragged2e}
+\justifying
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+
+%Esto arregla unos conflictos por usar babel
+\renewcommand\shorthandsspanish{} 
+
+\setbeamertemplate{footline}[frame number]
+
+
+\logo{\includegraphics[height=1.5cm]{logocgl.png}}
+
+\title{Controlando Versiones con Git}
+\subtitle{Clase Práctica}
+\author{Daniel Gacitúa Vásquez}
+\institute{Comunidad GNU/Linux USACH}
+\date{Enero de 2016}
+
+% more preamble...
+
+\begin{document}
+\begin{frame}
+\titlepage
+\end{frame}
+
+%Temas a tratar
+\begin{frame}
+\frametitle{Temas a tratar}
+\tableofcontents
+\end{frame}
+
+\input{"talk.tex"}
+
+\end{document}
